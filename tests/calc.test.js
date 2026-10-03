@@ -1,1 +1,12 @@
-
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+for(const f of ['js/calc.js','js/parser.js'])vm.runInThisContext(fs.readFileSync(f,'utf8'),{filename:f});
+assert.deepStrictEqual(derived({odometer:179450,volume:32,totalAmount:320000},{odometer:179000}),{distance:450,kmPerLiter:14.0625,costPerKm:711.1111111111111});
+assert.strictEqual(derived({odometer:179000,volume:32,totalAmount:320000},null).distance,null);
+assert(valid({vehicleId:'v',stationName:'SPBU',transactionDate:'2026-10-03',volume:20,pricePerLiter:10000,totalAmount:200000,odometer:100},null).length===0);
+assert(valid({vehicleId:'v',stationName:'SPBU',transactionDate:'2026-10-03',volume:20,pricePerLiter:10000,totalAmount:150000,odometer:100},null).length>0);
+assert(valid({vehicleId:'v',stationName:'SPBU',transactionDate:'2026-10-03',volume:20,pricePerLiter:10000,totalAmount:200000,odometer:90},{odometer:100}).length>0);
+let p=parseReceipt('PERTAMAX GREEN 95\n20 L\nRp 10.000/L\nTOTAL 200.000\n03/10/2026 14:30\nB 1234 XYZ');
+assert.strictEqual(p.fuelTypeName,'Pertamax Green 95');assert.strictEqual(p.volume,20);assert.strictEqual(p.pricePerLiter,10000);assert.strictEqual(p.totalAmount,200000);assert.strictEqual(p.transactionDate,'2026-10-03');assert.strictEqual(p.transactionTime,'14:30');assert.strictEqual(p.vehiclePlate,'B 1234 XYZ');
+let logs=[{id:'a',vehicleId:'v',odometer:100,volume:10,totalAmount:100000},{id:'b',vehicleId:'v',odometer:200,volume:10,totalAmount:100000},{id:'c',vehicleId:'v',odometer:300,volume:10,totalAmount:100000}];
+logs=recomputeAll(logs);assert.strictEqual(logs[2].distance,100);assert.strictEqual(logs[2].kmPerLiter,10);
+console.log('TDD PASS: calculation, validation, parser, recomputation');

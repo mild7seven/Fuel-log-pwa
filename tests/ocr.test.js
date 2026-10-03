@@ -1,0 +1,6 @@
+const fs=require('fs'),vm=require('vm');const parser=fs.readFileSync('js/parser.js','utf8');vm.runInThisContext(parser);
+function ok(name,cond){if(!cond)throw Error('FAIL '+name);console.log('PASS '+name)}
+let a=parseReceipt(`PERTAMINA SPBU 34.161.12\n03/10/2026 08:15\nPERTAMAX GREEN 95\n20,5 L\nRp 13.000 / L\nTOTAL Rp 266.500\nB 1234 XYZ`);
+ok('multi-format fuel',a.fuelTypeName==='Pertamax Green 95');ok('date',a.transactionDate==='2026-10-03');ok('time',a.transactionTime==='08:15');ok('volume',a.volume===20.5);ok('price',a.pricePerLiter===13000);ok('total',a.totalAmount===266500);ok('plate',a.vehiclePlate==='B 1234 XYZ');ok('confidence',a.confidence>=75);
+let b=parseReceipt(`SPBU VIVO\n2026-10-03 19:30\nREVVO 92\n10 L\n12390 PER L\nTOTAL 123900`);ok('second format',b.fuelTypeName==='Revvo 92'&&b.totalAmount===123900);
+let c=parseReceipt(`NAMA SPBU: SHELL 31.123.45\n2026-10-03 07.05\nPERTALITE\nVOLUME: 15.5 LITER\nHARGA/L: RP 10.000\nGRAND TOTAL: RP 155.000\nB 9876 CD`);ok('shell/date/time variant',c.stationName.includes('SHELL')&&c.transactionDate==='2026-10-03'&&c.transactionTime==='07:05');ok('validation mismatch',validateReceiptData({...c,totalAmount:100000}).some(x=>x.includes('berbeda signifikan')));console.log('OCR PARSER PASS');
